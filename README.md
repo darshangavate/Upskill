@@ -81,7 +81,6 @@ MVP/
 | 👤 User      | `user.routes.js`    | Components | User tracking   |
 | 🧠 Engine    | `engine.service.js` | Components | Recommendations |
 | 🧪 Simulator | `engine.routes.js`  | Pages      | Demo/testing    |
- 
 
 ## 📦 Mock Data
 
@@ -134,11 +133,9 @@ GET /api/engine
 
 Returns: Personalized recommendations
 
-
 ## 🏗️ Architecture Philosophy
 
 - **Feature-based modular design** - Each feature has clear backend/frontend separation
 - **Service-oriented backend** - Business logic in services, routes handle HTTP
 - **Scalable structure** - Easy to add new features without touching existing code
 - **API-first approach** - Frontend directly maps to API responsibilities
-
