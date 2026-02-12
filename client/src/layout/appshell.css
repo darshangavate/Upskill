@@ -1,0 +1,221 @@
+:root {
+  --bg: #eef3fb;
+  --panel: #ffffff;
+  --muted: #7a889e;
+  --text: #132033;
+
+  --shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
+  --border: rgba(16, 24, 40, 0.08);
+
+  --blue-900: #0b2a45;
+  --blue-800: #123b5c;
+  --blue-600: #1f74d1;
+  --blue-500: #2b84ea;
+
+  --good: #23a26d;
+  --warn: #f2a925;
+  --mid: #2b84ea;
+
+  --sidebar: #24324a;
+  --sidebar-2: #1f2b40;
+}
+
+.ss-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+}
+
+.ss-sidebar {
+  background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-2) 100%);
+  color: #d8e1ee;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ss-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 4px;
+  cursor: pointer;
+}
+
+.ss-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 18px;
+}
+
+.ss-brand-name {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 18px;
+}
+
+.ss-subtitle {
+  padding: 0 8px;
+  color: rgba(216, 225, 238, 0.6);
+  font-size: 12px;
+}
+
+.ss-nav {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.ss-navitem {
+  border: 0;
+  background: transparent;
+  color: rgba(216, 225, 238, 0.85);
+  padding: 10px 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ss-navitem:hover { background: rgba(255, 255, 255, 0.06); }
+
+.ss-navitem.active {
+  background: rgba(43, 132, 234, 0.18);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(43, 132, 234, 0.25);
+}
+
+.ss-ico { width: 18px; text-align: center; opacity: 0.9; }
+
+.ss-sidebottom {
+  margin-top: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.ss-user {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ss-useravatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.ss-username {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.ss-userrole {
+  font-size: 12px;
+  color: rgba(216, 225, 238, 0.7);
+}
+
+.ss-usercaret { opacity: 0.8; }
+
+.ss-sideactions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px;
+}
+
+.ss-linkbtn {
+  border: 0;
+  background: transparent;
+  color: rgba(216, 225, 238, 0.75);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 8px 6px;
+  border-radius: 10px;
+}
+.ss-linkbtn:hover { background: rgba(255, 255, 255, 0.06); }
+
+.ss-main { padding: 18px 24px 28px; }
+
+.ss-topbar {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.ss-course {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.06);
+}
+
+.ss-course-name { font-weight: 700; font-size: 14px; }
+.ss-course-caret { opacity: 0.65; }
+
+.ss-topright {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(19, 32, 51, 0.72);
+  font-size: 13px;
+}
+
+.ss-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--good);
+  box-shadow: 0 0 0 3px rgba(35, 162, 109, 0.18);
+}
+
+.ss-sep { opacity: 0.5; }
+
+.ss-iconbtn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 10px;
+}
+.ss-iconbtn:hover { background: rgba(19, 32, 51, 0.06); }
+
+.ss-miniavatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(19, 32, 51, 0.08);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: rgba(19, 32, 51, 0.8);
+}

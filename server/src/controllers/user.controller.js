@@ -5,6 +5,11 @@ import {
   getAssetById,
 } from "../services/dataStore.js";
 
+import User from "../models/User.js";
+import Course from "../models/Course.js";
+import Attempt from "../models/Attempt.js";
+import Asset from "../models/Asset.js";
+
 function ok(res, data) {
   return res.json({ ok: true, data });
 }
@@ -28,7 +33,6 @@ async function computeEtaMinutes(path) {
     const node = path.nodes[i];
     if (!node) continue;
 
-    // ✅ works for both old & new (locked/unlocked are NOT completed, so counted)
     if (isCompleted(node.status) || isSkipped(node.status)) continue;
 
     const asset = await getAssetById(node.assetId);
@@ -72,6 +76,29 @@ export const getDashboard = async (req, res) => {
         ? Object.fromEntries(user.mastery_map.entries())
         : user.mastery_map || {};
 
+    // ✅ extras for dashboard UI
+    const course = await Course.findOne({ courseId: enrollment.courseId }).select(
+      "courseId title description skillTags"
+    );
+
+    const recentAttempts = await Attempt.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("attemptId topic score timeSpentMin assetId createdAt");
+
+    const assets = await Asset.find().select("assetId topic title");
+    const assetIndex = Object.fromEntries(
+      assets.map((a) => [a.assetId, { topic: a.topic, title: a.title }])
+    );
+
+    // Optional: time efficiency label (simple)
+    const timeEfficiency =
+      recentAttempts.length >= 1
+        ? (recentAttempts[0].timeSpentMin || 0) <= 10
+          ? "On Track"
+          : "Slow"
+        : "On Track";
+
     const dashboard = {
       user: {
         userId: user.userId,
@@ -81,11 +108,15 @@ export const getDashboard = async (req, res) => {
         format_stats: user.format_stats || {},
         mastery_map: masteryObj,
       },
+      course,
       enrollment,
       path,
       nextAsset,
       etaMinutes,
       progress,
+      timeEfficiency,
+      recentAttempts,
+      assetIndex,
       alerts: [],
     };
 
@@ -95,14 +126,10 @@ export const getDashboard = async (req, res) => {
   }
 };
 
-
-// GET ALL USERS (for admin/demo)
+// ✅ GET ALL USERS (for admin/demo)
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await (await import("../models/User.js")).default
-      .find()
-      .select("userId name role learning_style_preference");
-
+    const users = await User.find().select("userId name role learning_style_preference");
     return ok(res, users);
   } catch (error) {
     return fail(res, error.message, 500);

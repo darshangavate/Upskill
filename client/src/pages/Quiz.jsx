@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import "./quiz.css";
 
 export default function Quiz() {
   const nav = useNavigate();
   const location = useLocation();
 
-  // If coming from Dashboard button, these exist:
+  // If coming from Dashboard/Path button, these exist:
   const stateUserId = location.state?.userId;
   const stateAssetId = location.state?.assetId;
   const stateTopic = location.state?.topic;
+  const stateTimeSpentMin = location.state?.timeSpentMin; // ✅ from Asset page
+  const [timeSpentMin, setTimeSpentMin] = useState(stateTimeSpentMin || null);
 
-  // For sidebar access (no state), we still want it to work:
-  const [userId, setUserId] = useState(stateUserId || "u-emp-01");
-
+  // For sidebar access (no state), still works:
+  const [userId, setUserId] = useState(stateUserId || "u-emp-02");
   const [topic, setTopic] = useState(stateTopic || "");
   const [assetId, setAssetId] = useState(stateAssetId || "");
 
@@ -25,14 +27,13 @@ export default function Quiz() {
 
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null); // backend response
+  const [nextUrl, setNextUrl] = useState(null); // resolved from dashboard/assetIndex
 
-  // --- helper: load quiz context even if opened from sidebar ---
   async function hydrateFromDashboardIfMissing() {
     if (topic && assetId) return;
 
     const dash = await api.getDashboard(userId);
     const next = dash?.nextAsset;
-
     if (!next) throw new Error("No next asset found. Go to dashboard and refresh.");
 
     setTopic(next.topic);
@@ -44,10 +45,11 @@ export default function Quiz() {
       setLoading(true);
       setErr("");
       setResult(null);
+      setNextUrl(null);
 
       await hydrateFromDashboardIfMissing();
 
-      // IMPORTANT: topic might just got set, so use latest via local variables
+      // topic might have just been set, so fetch dash and pick final values
       const dash = await api.getDashboard(userId);
       const next = dash?.nextAsset;
 
@@ -77,7 +79,6 @@ export default function Quiz() {
 
   const canSubmit = useMemo(() => {
     if (!questions.length) return false;
-    // require answering at least 1 question to submit (or all, your choice)
     return Object.keys(answers).length > 0;
   }, [questions, answers]);
 
@@ -85,26 +86,42 @@ export default function Quiz() {
     setAnswers((prev) => ({ ...prev, [qid]: idx }));
   }
 
+  async function resolveNextUrl(nextAssetId) {
+    try {
+      const dash = await api.getDashboard(userId);
+      const a = dash?.assetIndex?.[nextAssetId];
+      return a?.url || a?.link || null;
+    } catch {
+      return null;
+    }
+  }
+
   async function submit() {
     try {
       setSubmitting(true);
       setErr("");
 
-      // quick validate
       if (!topic || !assetId) throw new Error("Missing topic/asset. Go back to dashboard and retry.");
       if (!Object.keys(answers).length) throw new Error("Answer at least 1 question.");
 
       const payload = {
-        assetId,
-        topic,
-        timeSpentMin: 20, // demo default; later you can measure with timer
-        answers, // { questionId: selectedIndex }
-      };
+  assetId,
+  topic,
+  timeSpentMin: Number(timeSpentMin || 20),
+  answers,
+};
+
 
       const res = await api.submitQuiz(userId, payload);
 
-      // ✅ this must show correct next asset from backend
+      // show correct next asset from backend
       setResult(res);
+
+      // best effort resolve next URL for "Open NEXT"
+      if (res?.nextAssetId) {
+        const url = await resolveNextUrl(res.nextAssetId);
+        setNextUrl(url);
+      }
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -112,210 +129,186 @@ export default function Quiz() {
     }
   }
 
-  if (loading) {
-    return <div style={{ padding: 10 }}>Loading quiz...</div>;
-  }
+  function openNext() {
+  if (!result?.nextAssetId) return;
+  nav(`/asset/${result.nextAssetId}`, { state: { userId } });
+}
 
-  // --- UI ---
+
+  if (loading) return <div className="ss-page ss-center">Loading quiz…</div>;
+
   return (
-    <div style={styles.page}>
-      <div style={styles.topRow}>
-        <button style={styles.btn} onClick={() => nav(-1)}>
-          ← Back
-        </button>
+    <div className="ss-shell">
+      {/* SIDEBAR (self-contained, no AppShell) */}
+      <aside className="ss-sidebar">
+        <div className="ss-brand" onClick={() => nav("/")} role="button" tabIndex={0}>
+          <div className="ss-logo">⚡</div>
+          <div className="ss-brand-text">
+            <div className="ss-brand-name">SkillStream</div>
+          </div>
+        </div>
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <select value={userId} onChange={(e) => setUserId(e.target.value)} style={styles.select}>
-            <option value="u-emp-01">Aarav Sharma</option>
-            <option value="u-emp-02">Neha Patil</option>
-          </select>
+        <div className="ss-subtitle">Dynamic Upskilling Engine</div>
 
-          <button style={styles.btn} onClick={loadQuiz}>
-            Refresh Quiz
+        <nav className="ss-nav">
+          <button className="ss-navitem" onClick={() => nav("/")}>
+            <span className="ss-ico">●</span> Dashboard
           </button>
-        </div>
-      </div>
+          <button className="ss-navitem" onClick={() => nav("/catalog")}>
+            <span className="ss-ico">▦</span> Catalog
+          </button>
+          <button className="ss-navitem" onClick={() => nav("/path")}>
+            <span className="ss-ico">⧉</span> My Path
+          </button>
+          <button className="ss-navitem active" onClick={() => nav("/quiz")}>
+            <span className="ss-ico">☑</span> Quiz
+          </button>
+          <button className="ss-navitem" onClick={() => nav("/debug")}>
+            <span className="ss-ico">≡</span> Debug (Admin)
+          </button>
+        </nav>
 
-      <div style={{ marginBottom: 12 }}>
-        <div style={styles.h1}>Quiz</div>
-        <div style={styles.muted}>
-          Topic: <span style={styles.pill}>{topic || "—"}</span>{" "}
-          Asset: <span style={styles.pill}>{assetId || "—"}</span>
-        </div>
-      </div>
-
-      {err ? <div style={styles.err}>{err}</div> : null}
-
-      {/* RESULT PANEL */}
-      {result ? (
-        <div style={styles.card}>
-          <div style={styles.cardTitle}>Result</div>
-          <div style={{ display: "grid", gap: 8 }}>
-            <div>
-              Score: <b>{result.score}</b> (Correct {result.correctCount}/{result.total})
+        <div className="ss-sidebottom">
+          <div className="ss-user">
+            <div className="ss-useravatar">{(userId === "u-emp-02" ? "N" : "A")}</div>
+            <div className="ss-usertext">
+              <div className="ss-username">{userId === "u-emp-02" ? "Neha Patil" : "Aarav Sharma"}</div>
+              <div className="ss-userrole">Learner</div>
             </div>
-            <div>
-              Time ratio: <b>{result.timeRatio}</b>
-            </div>
-            <div>
-              Next Asset: <b>{result.nextAssetId}</b>
-            </div>
-            <div style={styles.reason}>{result.reason}</div>
-          </div>
-
-          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button style={styles.btnPrimary} onClick={() => nav("/dashboard")}>
-              Go to Dashboard
-            </button>
-            <button style={styles.btn} onClick={loadQuiz}>
-              Try Again
-            </button>
+            <div className="ss-usercaret">▾</div>
           </div>
         </div>
-      ) : null}
+      </aside>
 
-      {/* QUESTIONS */}
-      {!result ? (
-        <div style={styles.card}>
-          <div style={styles.cardTitle}>Questions</div>
+      {/* MAIN */}
+      <main className="ss-main">
+        {/* TOPBAR */}
+        <div className="ss-topbar">
+          <button className="ss-course">
+            <span className="ss-course-name">Quiz</span>
+            <span className="ss-course-caret">▾</span>
+          </button>
 
-          {!questions.length ? (
-            <div style={styles.muted}>No questions found for this topic. Seed questions for "{topic}".</div>
-          ) : (
-            <div style={{ display: "grid", gap: 12, marginTop: 10 }}>
-              {questions.map((q, idx) => (
-                <div key={q.questionId} style={styles.qCard}>
-                  <div style={{ fontWeight: 900 }}>
-                    {idx + 1}. {q.prompt}
-                  </div>
+          <div className="ss-topright">
+            <span className="ss-dot" />
+            <span className="ss-toptext">Connected</span>
+            <span className="ss-sep">|</span>
+            <span className="ss-toptext">Updated just now</span>
 
-                  <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                    {(q.options || []).map((opt, optIdx) => {
-                      const active = answers[q.questionId] === optIdx;
-                      return (
-                        <button
-                          key={optIdx}
-                          onClick={() => choose(q.questionId, optIdx)}
-                          style={{
-                            ...styles.optBtn,
-                            ...(active ? styles.optActive : {}),
-                          }}
-                        >
-                          {opt}
-                        </button>
-                      );
-                    })}
+            <button className="ss-iconbtn" onClick={loadQuiz} title="Refresh Quiz">
+              ↻
+            </button>
+
+            <div className="ss-miniavatar">{userId === "u-emp-02" ? "N" : "A"}</div>
+          </div>
+        </div>
+
+        {/* PAGE CONTENT */}
+        <div className="quiz-wrap">
+          <div className="quiz-header">
+            <div>
+              <div className="quiz-h1">Quiz</div>
+              <div className="quiz-sub">
+                Topic: <span className="pill muted">{topic || "—"}</span>{" "}
+                <span className="sep">•</span> Asset: <span className="pill muted">{assetId || "—"}</span>
+              </div>
+            </div>
+
+            <div className="quiz-controls">
+              <select value={userId} onChange={(e) => setUserId(e.target.value)} className="select">
+                <option value="u-emp-01">Aarav Sharma</option>
+                <option value="u-emp-02">Neha Patil</option>
+              </select>
+              <button className="btn" onClick={() => nav(-1)}>← Back</button>
+            </div>
+          </div>
+
+          {err ? <div className="err">{err}</div> : null}
+
+          {/* RESULT */}
+          {result ? (
+            <section className="ss-card">
+              <div className="ss-cardtitle">Result</div>
+
+              <div className="result-grid">
+                <div className="result-row">
+                  <div className="result-label">Score</div>
+                  <div className="result-val">
+                    {result.score} <span className="result-muted">(Correct {result.correctCount}/{result.total})</span>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="result-row">
+                  <div className="result-label">Time ratio</div>
+                  <div className="result-val">{result.timeRatio}</div>
+                </div>
+
+                <div className="result-row">
+                  <div className="result-label">Next asset</div>
+                  <div className="result-val">{result.nextAssetId || "—"}</div>
+                </div>
+
+                {result.reason ? <div className="reason">{result.reason}</div> : null}
+              </div>
+
+              <div className="actions">
+                <button className="btn primary" onClick={openNext} disabled={!result?.nextAssetId}>
+                  Open NEXT asset
+                </button>
+                <button className="btn" onClick={loadQuiz}>Try Again</button>
+                <button className="btn ghost" onClick={() => nav("/")}>Go to Dashboard</button>
+              </div>
+            </section>
+          ) : (
+            /* QUESTIONS */
+            <section className="ss-card">
+              <div className="ss-cardtitle">Questions</div>
+
+              {!questions.length ? (
+                <div className="muted">No questions found for this topic. Seed questions for “{topic}”.</div>
+              ) : (
+                <div className="q-list">
+                  {questions.map((q, idx) => (
+                    <div key={q.questionId} className="q-card">
+                      <div className="q-title">
+                        {idx + 1}. {q.prompt}
+                      </div>
+
+                      <div className="opt-list">
+                        {(q.options || []).map((opt, optIdx) => {
+                          const active = answers[q.questionId] === optIdx;
+                          return (
+                            <button
+                              key={optIdx}
+                              onClick={() => choose(q.questionId, optIdx)}
+                              className={`opt ${active ? "active" : ""}`}
+                            >
+                              {opt}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="actions">
+                <button
+                  className={`btn primary ${canSubmit && !submitting ? "" : "disabled"}`}
+                  disabled={!canSubmit || submitting}
+                  onClick={submit}
+                >
+                  {submitting ? "Submitting…" : "Submit Quiz"}
+                </button>
+
+                <button className="btn" onClick={loadQuiz}>Refresh Quiz</button>
+                <button className="btn ghost" onClick={() => nav("/")}>Back to Dashboard</button>
+              </div>
+            </section>
           )}
-
-          <div style={{ marginTop: 14, display: "flex", gap: 10 }}>
-            <button
-              style={{ ...styles.btnPrimary, opacity: canSubmit && !submitting ? 1 : 0.6 }}
-              disabled={!canSubmit || submitting}
-              onClick={submit}
-            >
-              {submitting ? "Submitting..." : "Submit Quiz"}
-            </button>
-
-            <button style={styles.btn} onClick={() => nav("/dashboard")}>
-              Back to Dashboard
-            </button>
-          </div>
         </div>
-      ) : null}
+      </main>
     </div>
   );
 }
-
-const styles = {
-  page: { padding: 4 },
-  topRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  h1: { fontSize: 26, fontWeight: 900 },
-  muted: { opacity: 0.75, marginTop: 6 },
-  err: {
-    background: "rgba(255,0,0,0.08)",
-    border: "1px solid rgba(255,0,0,0.25)",
-    color: "#ffb3b3",
-    padding: 10,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-
-  pill: {
-    fontSize: 12,
-    padding: "6px 10px",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.10)",
-  },
-
-  card: {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.10)",
-    borderRadius: 16,
-    padding: 16,
-  },
-  cardTitle: { fontWeight: 900, marginBottom: 10 },
-
-  qCard: {
-    padding: 12,
-    borderRadius: 14,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(0,0,0,0.12)",
-  },
-
-  optBtn: {
-    textAlign: "left",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.06)",
-    color: "#e9eefc",
-    cursor: "pointer",
-  },
-  optActive: {
-    border: "1px solid rgba(124,58,237,0.9)",
-    background: "rgba(124,58,237,0.18)",
-    fontWeight: 900,
-  },
-
-  reason: {
-    marginTop: 8,
-    padding: 10,
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.06)",
-  },
-
-  select: {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "#e9eefc",
-    padding: "10px 12px",
-    borderRadius: 12,
-  },
-  btn: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "#e9eefc",
-    padding: "10px 12px",
-    borderRadius: 12,
-    cursor: "pointer",
-  },
-  btnPrimary: {
-    background: "#7c3aed",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "white",
-    padding: "10px 12px",
-    borderRadius: 12,
-    fontWeight: 800,
-    cursor: "pointer",
-  },
-};

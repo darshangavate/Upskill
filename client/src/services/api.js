@@ -18,6 +18,9 @@ async function request(path, options = {}) {
 export const api = {
   getDashboard: (userId) => request(`/api/user/${userId}/dashboard`),
 
+  // ✅ asset details (uses your existing catalog route)
+  getAssetById: (assetId) => request(`/api/catalog/assets/${encodeURIComponent(assetId)}`),
+
   getQuiz: (userId, topic) =>
     request(`/api/engine/${userId}/quiz?topic=${encodeURIComponent(topic)}`),
 
