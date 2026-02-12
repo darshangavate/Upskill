@@ -1,43 +1,50 @@
-import { getQuestions, getAttemptsByUser } from "./dataStore.js";
+import Question from "../models/Question.js";
 
-export async function pickQuizQuestions(userId, topic, mode) {
-  const allQuestions = await getQuestions();
-  const topicQuestions = allQuestions.filter(q => q.topic === topic);
+// pick 5 questions from the topic
+export async function pickQuizQuestions(userId, topic, mode = "normal") {
+  const all = await Question.find({ topic });
 
-  if (mode === "retry") {
-    const attempts = await getAttemptsByUser(userId);
-    const topicAttempts = attempts.filter(a => a.topic === topic);
-    const lastAttempt = topicAttempts[topicAttempts.length - 1];
+  if (!all.length) return [];
 
-    if (!lastAttempt || lastAttempt.wrongQuestionIds.length === 0) {
-      return topicQuestions.slice(0, 3);
-    }
+  // shuffle
+  const shuffled = [...all].sort(() => Math.random() - 0.5);
 
-    return topicQuestions.filter(q =>
-      lastAttempt.wrongQuestionIds.includes(q.questionId)
-    );
-  }
+  // for MVP: always 5 questions (or less)
+  const selected = shuffled.slice(0, 5);
 
-  // Normal mode → return first 3 for MVP
-  return topicQuestions.slice(0, 3);
+  // remove correctIndex in response? (optional)
+  return selected.map((q) => ({
+    questionId: q.questionId,
+    topic: q.topic,
+    difficulty: q.difficulty,
+    prompt: q.prompt,
+    options: q.options,
+    explanation: q.explanation, // you can keep or remove
+  }));
 }
 
+// ✅ calculate score based on correctIndex in DB
 export async function calculateScore(topic, answers) {
-  const allQuestions = await getQuestions();
-  const questions = allQuestions.filter(q => q.topic === topic);
+  const qIds = Object.keys(answers || {});
+  if (!qIds.length) return { score: 0, wrongQuestionIds: [], total: 0, correctCount: 0 };
+
+  const questions = await Question.find({ topic, questionId: { $in: qIds } });
 
   let correct = 0;
-  let wrongIds = [];
+  const wrong = [];
 
-  questions.forEach(q => {
-    if (answers[q.questionId] === q.correctIndex) {
+  for (const q of questions) {
+    const selectedIndex = Number(answers[q.questionId]);
+
+    if (selectedIndex === q.correctIndex) {
       correct++;
     } else {
-      wrongIds.push(q.questionId);
+      wrong.push(q.questionId);
     }
-  });
+  }
 
-  const score = Math.round((correct / questions.length) * 100);
+  const total = questions.length || qIds.length;
+  const score = total ? Math.round((correct / total) * 100) : 0;
 
-  return { score, wrongQuestionIds: wrongIds };
+  return { score, wrongQuestionIds: wrong, total, correctCount: correct };
 }
