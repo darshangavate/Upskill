@@ -1,10 +1,10 @@
-# Upskill MVP
+# Skill-stream MVP
 
 A MERN (MongoDB, Express, React, Node.js) stack application for an online skill-learning platform with an adaptive recommendation engine that personalizes learning paths in real-time.
 
 ## 🎯 Overview
 
-Upskill is an MVP platform designed around 4 core features:
+Skill-stream is an MVP platform designed around 4 core features:
 
 1. **🛠️ Catalog** - Content library (assets, courses, topics, levels)
 2. **👤 User Progress** - Track learner activity and course enrollments
@@ -176,7 +176,7 @@ The engine automatically adjusts learning paths based on attempt results:
 ```
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/upskill
+MONGODB_URI=mongodb://localhost:27017/Skill-stream
 ```
 
 **client/.env:**
