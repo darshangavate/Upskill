@@ -13,6 +13,21 @@
   --mid: #2b84ea;    /* focus */
   --side1: #24324a;
   --side2: #1f2b40;
+
+  --h1: 24px;
+  --h2: 16px;
+  --body: 13px;
+  --small: 12px;
+
+  --lh-body: 1.45;
+  --lh-tight: 1.15;
+
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+
+
 }
 
 /* minimal shared scaffolding (same as earlier) */
@@ -334,3 +349,237 @@
   border-color: rgba(242,169,37,0.24);
   color: #a06a00;
 }
+.path-h1 { font-size: var(--h1); line-height: var(--lh-tight); }
+.path-sub { font-size: var(--body); line-height: var(--lh-body); }
+.ss-cardtitle { font-size: var(--h2); }
+.seq-title { font-size: 14px; line-height: var(--lh-tight); }
+.hint, .path-reason { font-size: var(--small); line-height: var(--lh-body); }
+/* =========================
+   PATH UI HIERARCHY UPGRADE
+   Paste at END of your CSS
+   ========================= */
+
+/* better global readability on this page */
+.path-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  gap: var(--space-3);
+}
+
+/* header hierarchy */
+.path-h1 {
+  font-size: var(--h1);
+  font-weight: 950;
+  letter-spacing: -0.3px;
+  line-height: var(--lh-tight);
+}
+
+.path-sub {
+  font-size: var(--body);
+  color: rgba(19, 32, 51, 0.62);
+  line-height: var(--lh-body);
+}
+
+/* subtle “reason/info” banner – easier to scan */
+.path-reason {
+  font-size: var(--small);
+  color: rgba(19, 32, 51, 0.65);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+/* card header hierarchy */
+.ss-card {
+  padding: 18px;
+}
+
+.ss-cardtitle {
+  font-size: var(--h2);
+  font-weight: 950;
+  letter-spacing: -0.15px;
+  margin-bottom: 12px;
+}
+
+/* lane titles – make them look like section headers */
+.lane-title {
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: -0.1px;
+  margin-bottom: 10px;
+}
+
+.lane-title .row-left {
+  align-items: baseline; /* nicer alignment */
+}
+
+/* sequence cards: title bigger, meta smaller */
+.seq-title {
+  font-size: 15px;
+  font-weight: 950;
+  line-height: var(--lh-tight);
+}
+
+.seq-meta {
+  margin-top: 10px;
+}
+
+.pill {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* improve scan-ability: add dividers between lanes */
+.lane {
+  padding-top: 4px;
+}
+.lane + .lane {
+  border-top: 1px solid rgba(16, 24, 40, 0.06);
+  padding-top: 16px;
+  margin-top: 6px;
+}
+
+/* right summary: make numbers pop, labels calm */
+.sum-label {
+  font-size: 11px;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: rgba(19, 32, 51, 0.55);
+}
+
+.sum-val {
+  font-size: 20px;
+  font-weight: 950;
+}
+
+/* explanation blocks: more readable line spacing */
+.explain-text {
+  line-height: 1.5;
+}
+
+/* buttons: consistent weight + hover */
+.path-refresh,
+.path-cta,
+.open,
+.toggle,
+.go-next {
+  font-weight: 950;
+}
+
+/* reduce “everything same size” by tuning body text */
+.hint {
+  font-size: var(--small);
+  color: rgba(19, 32, 51, 0.62);
+  line-height: 1.5;
+}
+
+/* optional: make empty states calmer */
+.empty {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+/* optional: slightly increase spacing between cards in grids */
+.up-grid,
+.done-grid {
+  gap: 12px;
+}
+/* ===== Learning Sequence lanes (ONLY) ===== */
+
+/* lane container card -> visually grouped */
+.lane {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.75);
+}
+
+/* lane header row -> more "section" feeling */
+.lane-title {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  background: rgba(19,32,51,0.04);
+  border: 1px solid rgba(16,24,40,0.06);
+}
+
+/* colored lane accents */
+.lane.now { border-left: 5px solid var(--mid); }
+.lane.next { border-left: 5px solid var(--good); }
+.lane.review { border-left: 5px solid var(--warn); }
+.lane.up { border-left: 5px solid rgba(43,132,234,0.45); }
+.lane.done { border-left: 5px solid rgba(122,136,158,0.45); }
+
+/* card spacing inside lane */
+.lane .seq-card,
+.lane .mini-card {
+  margin-top: 10px;
+}
+
+/* stronger visual difference on cards */
+.seq-card {
+  position: relative;
+  padding: 14px 14px;
+  border-radius: 14px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.seq-card:hover { transform: translateY(-1px); }
+
+/* status stripe on left of each seq card */
+.seq-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 99px;
+  background: rgba(19,32,51,0.12);
+}
+.seq-card.now::before { background: var(--mid); }
+.seq-card.next::before { background: var(--good); }
+.seq-card.review::before { background: var(--warn); }
+
+/* now feels “selected” */
+.seq-card.now {
+  border-color: rgba(43,132,234,0.35);
+  box-shadow: 0 14px 30px rgba(31,116,209,0.14);
+}
+
+/* next: calm but clear */
+.seq-card.next {
+  border-color: rgba(35,162,109,0.30);
+  box-shadow: 0 10px 22px rgba(35,162,109,0.10);
+}
+
+/* upcoming: neutral */
+.mini-card { border-radius: 14px; }
+
+/* done: clearly de-emphasized */
+.mini-card.done {
+  opacity: 0.62;
+  filter: grayscale(0.15);
+}
+/* tags row: calmer + compact */
+.seq-meta, .mini-meta {
+  margin-top: 8px;
+  gap: 6px;
+}
+
+/* chip redesign */
+.pill {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(16,24,40,0.10);
+  background: rgba(19,32,51,0.04);
+  color: rgba(19,32,51,0.68);
+  font-weight: 800;
+}
+
+/* priority chips (only if you keep them) */
+.pill.fmt { background: rgba(43,132,234,0.08); border-color: rgba(43,132,234,0.16); color: #1f74d1; }
+.pill.time { background: rgba(35,162,109,0.10); border-color: rgba(35,162,109,0.18); color: #1e7f57; }
+.pill.diff { background: rgba(242,169,37,0.12); border-color: rgba(242,169,37,0.20); color: #a06a00; }

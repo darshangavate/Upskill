@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import "./dashboard.css";
+import { formatTitle } from "../utils/formatTitle";
+import { getActiveUserId } from "../utils/activeUser";
+
 
 export default function Dashboard() {
   const nav = useNavigate();
 
-  // ✅ fixed user for demo (no switch)
-  const userId = "u-emp-02";
+  const userId = getActiveUserId();
 
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");

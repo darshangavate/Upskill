@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../services/api";
+import { formatTitle } from "../utils/formatTitle";
 import "./asset.css";
 
 export default function Asset() {
@@ -130,7 +131,7 @@ export default function Asset() {
         <div className="asset-wrap">
           <div className="asset-header">
             <div>
-              <div className="asset-title">{asset.title || asset.assetId}</div>
+              <div className="asset-title">{formatTitle(asset.title || asset.assetId)}</div>
               <div className="asset-sub">
                 <span className="pill muted">{asset.topic || "—"}</span>
                 <span className="sep">•</span>

@@ -10,6 +10,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import { formatTitle } from "../utils/formatTitle";
+import { getActiveUserId } from "../utils/activeUser";
 import "./path.css";
 
 const norm = (s) => String(s || "").toLowerCase().trim();
@@ -18,7 +20,7 @@ const isReview = (s) => norm(s) === "needs_review";
 
 export default function Path() {
   const nav = useNavigate();
-  const userId = "u-emp-02";
+  const userId = getActiveUserId();
 
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
@@ -51,7 +53,7 @@ export default function Path() {
 
     const items = nodes.map((n, idx) => {
       const asset = assetIndex?.[n.assetId] || {};
-      const title = asset.title || n.title || n.assetId;
+      const title = formatTitle(asset.title || n.title || n.assetId);
       const topic = asset.topic || n.topic || "";
       const format = asset.format || n.format || guessFormatFromId(n.assetId);
       const level = asset.level || n.level || "";

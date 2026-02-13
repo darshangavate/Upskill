@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import "./quiz.css";
+import { formatTitle } from "../utils/formatTitle";
+import { getActiveUserId } from "../utils/activeUser";
+
 
 export default function Quiz() {
   const nav = useNavigate();
@@ -14,8 +17,8 @@ export default function Quiz() {
   const stateTimeSpentMin = location.state?.timeSpentMin; // ✅ from Asset page
   const [timeSpentMin, setTimeSpentMin] = useState(stateTimeSpentMin || null);
 
-  // For sidebar access (no state), still works:
-  const [userId, setUserId] = useState(stateUserId || "u-emp-02");
+  // For sidebar access (no state), use active user:
+  const [userId, setUserId] = useState(stateUserId || getActiveUserId());
   const [topic, setTopic] = useState(stateTopic || "");
   const [assetId, setAssetId] = useState(stateAssetId || "");
 

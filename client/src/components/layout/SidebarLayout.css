@@ -50,15 +50,17 @@
   color: #c0392b;
 }
 
-/* sidebar */
-.ss-sidebar {
-  background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-2) 100%);
-  color: #d8e1ee;
-  padding: 22px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* make the left sidebar fixed-height + not move while page scrolls */
+.ss-sidebar{
+  position: sticky;
+  top: 0;
+  height: 100vh;        /* full screen height */
+  overflow-y: auto;     /* if sidebar content grows, sidebar scrolls internally */
 }
+
+/* optional: prevent horizontal shift when scrollbar appears */
+.ss-sidebar::-webkit-scrollbar { width: 10px; }
+
 
 .ss-brand {
   display: flex;
@@ -191,6 +193,7 @@
 /* main */
 .ss-main {
   padding: 18px 24px 28px;
+
 }
 
 .ss-topbar {

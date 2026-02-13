@@ -1,203 +1,147 @@
+// SidebarLayout.jsx
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import "./SidebarLayout.css";
 import { api } from "../../services/api";
-
-/*
-  Layout Responsibility:
-  - render sidebar
-  - render topbar
-  - fetch global user state
-  - provide course switcher
-*/
+import { displayName } from "../../utils/displayName";
+import { getActiveUserId, setActiveUserId } from "../../utils/activeUser";
 
 export default function SidebarLayout() {
-
   const nav = useNavigate();
   const location = useLocation();
 
-  // 🔹 TEMP USER (later replace with auth context)
-  const userId = "u-emp-02";
+  const userId = getActiveUserId();
 
-  // ---------- STATE ----------
-  const [dashboard, setDashboard] = useState(null);     // current active course + user info
-  const [enrollments, setEnrollments] = useState([]);   // ALL enrolled courses
-  const [open, setOpen] = useState(false);              // dropdown open/close
+  const [dashboard, setDashboard] = useState(null);
+  const [enrollments, setEnrollments] = useState([]);
+  const [open, setOpen] = useState(false);
 
-  // ---------- LOAD GLOBAL DATA ----------
   useEffect(() => {
-    async function load() {
-      try {
-        // fetch active state
-        const dash = await api.getDashboard(userId);
+    (async () => {
+      // 1) dashboard (active course)
+      const d = await api.getDashboard(userId);
+      setDashboard(d);
 
-        // fetch ALL enrollments for dropdown
-        const list = await api.getEnrollments(userId);
+      // 2) all enrollments (dropdown list)
+      const all = await api.getEnrollments(userId);
+      setEnrollments(all || []);
+    })();
+  }, [userId]);
 
-        setDashboard(dash);
-        setEnrollments(list);
-      } catch (err) {
-        console.error("Layout load error:", err);
-      }
-    }
-
-    load();
-  }, []);
-
-  // ---------- HELPERS ----------
   const isActive = (path) => location.pathname === path;
 
-  const currentCourse =
-    dashboard?.course?.title || "Select Course";
+  const currentCourseTitle = displayName(
+    { title: dashboard?.course?.title, courseId: dashboard?.course?.courseId },
+    { fallback: "Select Course", maxLen: 30 }
+  );
 
-  // Switch course handler
   async function switchCourse(courseId) {
-    try {
-      await api.enroll(userId, courseId); // backend switches active
-      setOpen(false);
-      window.location.reload(); // MVP refresh
-    } catch (err) {
-      console.error("Switch course failed:", err);
-    }
+    // enroll() also sets selected as active + pauses others (based on your backend change)
+    await api.enroll(userId, courseId);
+
+    // reload fresh dashboard + enrollments (NO full window reload)
+    const d = await api.getDashboard(userId);
+    setDashboard(d);
+
+    const all = await api.getEnrollments(userId);
+    setEnrollments(all || []);
+
+    setOpen(false);
+
+    // optional: if you want to always land back on dashboard after switching
+    nav("/");
   }
 
-  // ---------- RENDER ----------
   return (
     <div className="ss-shell">
-
-      {/* =======================================================
-            LEFT SIDEBAR
-      ======================================================= */}
       <aside className="ss-sidebar">
-
-        {/* Brand */}
-        <div className="ss-brand">
+        <div className="ss-brand" onClick={() => nav("/")}>
           <div className="ss-logo">⚡</div>
           <div className="ss-brand-name">SkillStream</div>
         </div>
 
         <div className="ss-subtitle">Dynamic Upskilling Engine</div>
 
-        {/* Navigation */}
         <nav className="ss-nav">
-
-          <button
-            className={`ss-navitem ${isActive("/") ? "active" : ""}`}
-            onClick={() => nav("/")}
-          >
-            ● Dashboard
+          <button className={`ss-navitem ${isActive("/") ? "active" : ""}`} onClick={() => nav("/")}>
+            <span className="ss-ico">●</span> Dashboard
           </button>
 
-          <button
-            className={`ss-navitem ${isActive("/courses") ? "active" : ""}`}
-            onClick={() => nav("/courses")}
-          >
-            ▦ Courses
+          <button className={`ss-navitem ${isActive("/courses") ? "active" : ""}`} onClick={() => nav("/courses")}>
+            <span className="ss-ico">▦</span> Courses
           </button>
 
-          <button
-            className={`ss-navitem ${isActive("/path") ? "active" : ""}`}
-            onClick={() => nav("/path")}
-          >
-            ⧉ My Path
+          <button className={`ss-navitem ${isActive("/path") ? "active" : ""}`} onClick={() => nav("/path")}>
+            <span className="ss-ico">⧉</span> My Path
           </button>
 
-          <button
-            className={`ss-navitem ${isActive("/quiz") ? "active" : ""}`}
-            onClick={() => nav("/quiz")}
-          >
-            ☑ Quiz
+          <button className={`ss-navitem ${isActive("/quiz") ? "active" : ""}`} onClick={() => nav("/quiz")}>
+            <span className="ss-ico">☑</span> Quiz
           </button>
-
         </nav>
 
-        {/* User Panel */}
         <div className="ss-sidebottom">
           <div className="ss-user">
-
             <div className="ss-useravatar">
-              {(dashboard?.user?.name || "U")[0]}
+              {(dashboard?.user?.name || "U").slice(0, 1).toUpperCase()}
             </div>
-
-            <div>
-              <div className="ss-username">
-                {dashboard?.user?.name || "Loading"}
-              </div>
-
-              <div className="ss-userrole">
-                {dashboard?.user?.role || ""}
-              </div>
+            <div className="ss-usertext">
+              <div className="ss-username">{dashboard?.user?.name || "User"}</div>
+              <div className="ss-userrole">{displayName(dashboard?.user?.role || "employee", { maxLen: 14 })}</div>
             </div>
+            <div className="ss-usercaret">▾</div>
+          </div>
 
+          <div className="ss-sideactions">
+            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-01")}>u-emp-01</button>
+            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-02")}>u-emp-02</button>
+            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-03")}>u-emp-03</button>
           </div>
         </div>
-
       </aside>
 
-
-
-      {/* =======================================================
-            MAIN CONTENT AREA
-      ======================================================= */}
       <main className="ss-main">
-
-        {/* ================= TOPBAR ================= */}
         <div className="ss-topbar">
-
-          {/* COURSE SWITCHER */}
-          <div
-            className="ss-course"
-            onClick={() => setOpen(!open)}
-          >
-            <div className="ss-course-name">
-              {currentCourse}
-            </div>
-
+          {/* Dropdown trigger */}
+          <div className="ss-course" onClick={() => setOpen((v) => !v)} role="button" tabIndex={0}>
+            <div className="ss-course-name">{currentCourseTitle}</div>
             <div className="ss-course-caret">▾</div>
           </div>
 
-
-          {/* DROPDOWN LIST */}
+          {/* Dropdown */}
           {open && (
             <div className="ss-dropdown">
-
-              {enrollments.length === 0 && (
-                <div className="ss-dropdown-item muted">
-                  No enrolled courses
+              {enrollments.length === 0 ? (
+                <div className="ss-dropdown-item" style={{ opacity: 0.7 }}>
+                  No enrollments yet
                 </div>
+              ) : (
+                enrollments.map((e) => {
+                  const active = e.status === "active";
+                  return (
+                    <div
+                      key={e.enrollmentId || `${e.userId}-${e.courseId}`}
+                      className={`ss-dropdown-item ${active ? "active" : ""}`}
+                      onClick={() => switchCourse(e.courseId)}
+                    >
+                      {displayName(e.courseId, { maxLen: 32 })}
+                      <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 12 }}>
+                        {active ? "• Active" : ""}
+                      </span>
+                    </div>
+                  );
+                })
               )}
-
-              {enrollments.map(e => (
-                <div
-                  key={e.courseId}
-                  className={`ss-dropdown-item ${
-                    dashboard?.course?.courseId === e.courseId
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() => switchCourse(e.courseId)}
-                >
-                  {e.courseId}
-                </div>
-              ))}
-
             </div>
           )}
 
-
-          {/* RIGHT STATUS AREA */}
           <div className="ss-topright">
             <span className="ss-dot" />
             <span>Connected</span>
-            <button className="ss-iconbtn">↻</button>
           </div>
-
         </div>
 
-
-        {/* PAGE CONTENT */}
         <Outlet />
-
       </main>
     </div>
   );

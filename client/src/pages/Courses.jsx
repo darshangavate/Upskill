@@ -1,13 +1,18 @@
+// Courses.jsx
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../services/api";
+import { displayName } from "../utils/displayName";
+import { formatTitle } from "../utils/formatTitle";
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
 
-  // MVP: pick active user from localStorage (Dashboard should set this)
-  const userId = useMemo(() => localStorage.getItem("activeUserId") || "u-emp-02", []);
+  const userId = useMemo(
+    () => localStorage.getItem("activeUserId") || "u-emp-01",
+    []
+  );
 
   useEffect(() => {
     (async () => {
@@ -27,7 +32,7 @@ export default function Courses() {
     try {
       setMsg("");
       await api.enroll(userId, courseId);
-      setMsg(`✅ Enrolled in ${courseId}. Go to Dashboard.`);
+      setMsg(`✅ Enrolled in ${displayName(courseId)}. Go to Dashboard.`);
     } catch (e) {
       setMsg(`❌ ${e.message}`);
     }
@@ -51,14 +56,28 @@ export default function Courses() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
           {courses.map((c) => (
-            <div key={c.courseId} style={{ background: "white", borderRadius: 16, padding: 16, boxShadow: "0 6px 18px rgba(0,0,0,0.06)" }}>
-              <div style={{ fontWeight: 800 }}>{c.title}</div>
-              <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>{c.description}</div>
+            <div
+              key={c.courseId}
+              style={{
+                background: "white",
+                borderRadius: 16,
+                padding: 16,
+                boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
+              }}
+            >
+              {/* Use real title if present, else prettify id */}
+              <div style={{ fontWeight: 800 }}>
+                {displayName({ title: c.title, courseId: c.courseId }, { maxLen: 34 })}
+              </div>
+
+              <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>
+                {c.description}
+              </div>
 
               <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {(c.skillTags || []).map((t) => (
                   <span key={t} style={{ fontSize: 12, padding: "4px 8px", borderRadius: 999, background: "#EEF2FF" }}>
-                    {t}
+                    {displayName(t, { maxLen: 18 })}
                   </span>
                 ))}
               </div>
