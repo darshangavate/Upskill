@@ -1,15 +1,15 @@
 # Upskill MVP
 
-A MERN (MongoDB, Express, React, Node.js) stack application for an online skill-learning platform with a recommendation engine.
+A MERN (MongoDB, Express, React, Node.js) stack application for an online skill-learning platform with an adaptive recommendation engine that personalizes learning paths in real-time.
 
 ## 🎯 Overview
 
 Upskill is an MVP platform designed around 4 core features:
 
-1. **🛠️ Catalog** - Content library and learning resources
-2. **👤 User Progress** - Track user activity and learning history
-3. **🧠 Recommendation Engine** - Personalized next-step suggestions
-4. **🧪 Simulator** - Demo and testing the recommendation engine
+1. **🛠️ Catalog** - Content library (assets, courses, topics, levels)
+2. **👤 User Progress** - Track learner activity and course enrollments
+3. **🧠 Adaptive Engine** - Resequence learning paths based on performance
+4. **🧪 Quiz System** - Attempt tracking and score-based format switching
 
 ## 📁 Project Structure
 
@@ -17,10 +17,10 @@ Upskill is an MVP platform designed around 4 core features:
 MVP/
 ├── client/
 │   ├── src/
-│   │   ├── components/        # Reusable React components
-│   │   ├── pages/             # Page components
-│   │   ├── services/          # API service calls
-│   │   ├── utils/             # Utility functions
+│   │   ├── components/        # Reusable React components (SidebarLayout, etc.)
+│   │   ├── pages/             # Page components (Dashboard, Path, Quiz, Asset)
+│   │   ├── services/          # API service calls (api.js)
+│   │   ├── utils/             # Utility functions (formatTitle, activeUser, etc.)
 │   │   ├── App.jsx            # Main App component
 │   │   └── main.jsx           # React entry point
 │   ├── index.html             # HTML template
@@ -30,75 +30,49 @@ MVP/
 ├── server/
 │   ├── src/
 │   │   ├── config/            # Configuration files (db.js)
-│   │   ├── controllers/       # Route handlers
-│   │   ├── data/              # Mock data (mockCatalog.json)
-│   │   ├── models/            # Data models
-│   │   ├── routes/            # API route definitions
-│   │   ├── services/          # Business logic
+│   │   ├── controllers/       # Route handlers (catalog, user, engine)
+│   │   ├── data/              # Seed data (JSON files for seeding)
+│   │   ├── models/            # MongoDB data models (User, Course, Asset, Path, Attempt, etc.)
+│   │   ├── routes/            # API route definitions (catalog, user, engine)
+│   │   ├── services/          # Business logic (engine resequencing, quiz scoring)
 │   │   ├── app.js             # Express app setup
 │   │   └── server.js          # Server entry point
+│   ├── seed.js                # MongoDB seed script
 │   ├── package.json           # Server dependencies
 │   └── .env.example           # Example env variables
 ├── .gitignore                 # Git ignore rules
 └── README.md                  # This file
 ```
 
-## 🚀 Features & API Endpoints
+## 🚀 Running Locally
 
-### 1. 🛠️ Catalog (Content Library)
+### Prerequisites
 
-- **Route File:** `server/src/routes/catalog.routes.js`
-- **API:** `GET /api/catalog`
-- **Purpose:** Serves learning resources and course catalog
-- **Frontend:** `client/src/components/` (PathView, etc.)
+- Node.js 16+
+- MongoDB running locally or Atlas connection string
 
-### 2. 👤 User Progress (Memory)
+### Installation & Setup
 
-- **Route File:** `server/src/routes/user.routes.js`
-- **API:** `GET /api/user`
-- **Purpose:** Manages user profiles and activity tracking
-- **Frontend:** `client/src/components/` (StatTiles, etc.)
+**1. Install dependencies:**
 
-### 3. 🧠 Recommendation Engine (Brain)
+```bash
+# Server
+cd server
+npm install
 
-- **Service File:** `server/src/services/engine.service.js`
-- **API:** `GET /api/engine`
-- **Purpose:** Generates personalized learning recommendations
-- **Frontend:** `client/src/components/` (NextAssetCard, etc.)
-
-### 4. 🧪 Simulator (Demo Engine)
-
-- **Route File:** `server/src/routes/engine.routes.js`
-- **API:** `POST /api/engine/simulate`
-- **Purpose:** Tests recommendation logic
-- **Frontend:** `client/src/pages/` (Simulate.jsx)
-
-## 📊 Feature Breakdown
-
-| Feature      | Backend             | Frontend   | Purpose         |
-| ------------ | ------------------- | ---------- | --------------- |
-| 🛠️ Catalog   | `catalog.routes.js` | Components | Content library |
-| 👤 User      | `user.routes.js`    | Components | User tracking   |
-| 🧠 Engine    | `engine.service.js` | Components | Recommendations |
-| 🧪 Simulator | `engine.routes.js`  | Pages      | Demo/testing    |
-
-## 📦 Mock Data
-
-Sample catalog data in `server/src/data/mockCatalog.json`:
-
-```json
-[{ "id": "1", "name": "Intro to Python", "type": "video" }]
+# Client
+cd ../client
+npm install
 ```
 
-## 🔐 Environment Variables
-
-Create `.env` files:
+**2. Configure environment variables:**
 
 **server/.env:**
 
 ```
 PORT=5000
 NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/upskill
 ```
 
 **client/.env:**
@@ -107,35 +81,154 @@ NODE_ENV=development
 VITE_API_URL=http://localhost:5000
 ```
 
-## 📋 API Reference
+**3. Seed database (one-time):**
 
-### Catalog
-
-```
-GET /api/catalog
-```
-
-Returns: Array of learning resources
-
-### User
-
-```
-GET /api/user
+```bash
+cd server
+npm run seed
 ```
 
-Returns: User profile and activity data
+**4. Start the application:**
 
-### Engine
+**Terminal 1 (Server):**
+
+```bash
+cd server
+npm start
+```
+
+**Terminal 2 (Client):**
+
+```bash
+cd client
+npm run dev
+```
+
+Server runs on `http://localhost:5000`  
+Client runs on `http://localhost:5173`
+
+## 📊 Data Models
+
+| Model          | Purpose            | Key Fields                                                            |
+| -------------- | ------------------ | --------------------------------------------------------------------- |
+| **User**       | Learner profile    | userId, name, role, email                                             |
+| **Course**     | Learning program   | courseId, title, moduleAssetIds, level                                |
+| **Asset**      | Content item       | assetId, title, format (video/doc/lab), level, expectedTimeMin        |
+| **Path**       | Learner's sequence | userId, courseId, nodes (assetId + status), currentIndex, nextAssetId |
+| **Attempt**    | Quiz/format result | assetId, userId, score, timeSpentSec, format, status (pass/fail)      |
+| **Enrollment** | User-Course link   | userId, courseId, status (active/paused)                              |
+| **Question**   | Quiz questions     | questionId, topic, difficulty, options, correctAnswer                 |
+
+## 🧠 Adaptive Logic (Resequencing Rules)
+
+The engine automatically adjusts learning paths based on attempt results:
+
+| Scenario                 | Action                                              |
+| ------------------------ | --------------------------------------------------- |
+| **Fail Video**           | Switch to Doc format at same level                  |
+| **Fail Doc**             | Drop one level (Advanced → Intermediate → Beginner) |
+| **Pass**                 | Advance to next asset in sequence                   |
+| **Incomplete (timeout)** | Retry same asset                                    |
+
+**Signals used:**
+
+- `score` - Quiz performance (pass threshold: 70%)
+- `format` - Content type (video, doc, lab)
+- `level` - Difficulty tier (beginner, intermediate, advanced)
+- `timeSpentSec` - Duration (compared to expectedTimeMin)
+- `attemptNo` - Number of tries
+
+## 📋 Current API Routes
+
+### Catalog Routes (`/api/catalog`)
+
+| Method  | Endpoint                         | Purpose                               |
+| ------- | -------------------------------- | ------------------------------------- |
+| **GET** | `/api/catalog/assets`            | List all assets                       |
+| **GET** | `/api/catalog/courses`           | List all courses                      |
+| **GET** | `/api/catalog/assets/:assetId`   | Get single asset                      |
+| **GET** | `/api/catalog/courses/:courseId` | Get single course with moduleAssetIds |
+
+### User Routes (`/api/user`)
+
+| Method   | Endpoint                             | Purpose                                                |
+| -------- | ------------------------------------ | ------------------------------------------------------ |
+| **GET**  | `/api/user/all`                      | List all users                                         |
+| **GET**  | `/api/user/:userId/dashboard`        | Get user dashboard (active course + path + next asset) |
+| **GET**  | `/api/user/:userId/enrollments`      | List user's enrollments                                |
+| **POST** | `/api/user/:userId/enroll/:courseId` | Enroll user in course (activates + pauses others)      |
+
+### Engine Routes (`/api/engine`)
+
+| Method   | Endpoint                          | Purpose                                  |
+| -------- | --------------------------------- | ---------------------------------------- |
+| **GET**  | `/api/engine/:userId/quiz`        | Get quiz for user (topic-based attempts) |
+| **POST** | `/api/engine/:userId/quiz/submit` | Submit attempt + trigger resequencing    |
+
+## 🔑 Key Features
+
+### ✅ Dynamic Path Resequencing
+
+- Real-time adaptation based on performance
+- Format switching (video ↔ doc) on fail
+- Level dropping on repeated failures
+- Transparent engine decision logging
+
+### ✅ Multi-User Support
+
+- localStorage-based user switching (dev/testing)
+- Separate paths per user per course
+- Enrollment management (active/paused)
+
+### ✅ Asset Title Formatting
+
+- Removes course prefix from titles (e.g., "Git: Version Control Basics" → "Version Control Basics")
+- Cleans up "(Corporate Track)" tags
+- Collapses extra whitespace
+
+### ✅ Quiz & Scoring System
+
+- Attempts tracked per asset + format
+- Pass/fail determination (70% threshold)
+- Time spent vs. expected time comparison
+- Deferred "needs_review" status for borderline scores
+
+## 🌐 Frontend Pages
+
+- **Dashboard** (`/`) - Active course overview, recent activity
+- **My Path** (`/path`) - NOW/NEXT/Upcoming/Review/Completed lanes
+- **Courses** (`/courses`) - Browse available courses
+- **Asset** (`/asset/:assetId`) - View content + timer + complete asset
+- **Quiz** (`/quiz`) - Take assessments + submit attempts
+
+## 🔐 Environment Variables
+
+**server/.env:**
 
 ```
-GET /api/engine
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/upskill
 ```
 
-Returns: Personalized recommendations
+**client/.env:**
+
+```
+VITE_API_URL=http://localhost:5000
+```
 
 ## 🏗️ Architecture Philosophy
 
-- **Feature-based modular design** - Each feature has clear backend/frontend separation
-- **Service-oriented backend** - Business logic in services, routes handle HTTP
-- **Scalable structure** - Easy to add new features without touching existing code
-- **API-first approach** - Frontend directly maps to API responsibilities
+- **Feature-based modular design** - Each domain (catalog, user, engine) has clear routes/controllers/services
+- **Service-oriented backend** - Business logic in services, routes handle HTTP contracts
+- **Real-time adaptation** - Immediate resequencing on attempt submit (no batch jobs)
+- **Centralized state management** - localStorage for user context, MongoDB for persistence
+- **Composable frontend** - Cards + lanes = flexible learning UI
+
+## 🚀 Deployment
+
+_Coming soon: Docker, vercel/heroku steps_
+
+## 📧 Contact
+
+For questions or feedback, open an issue or contact the team.
