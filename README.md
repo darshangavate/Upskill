@@ -65,30 +65,7 @@ cd ../client
 npm install
 ```
 
-**2. Configure environment variables:**
-
-**server/.env:**
-
-```
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/upskill
-```
-
-**client/.env:**
-
-```
-VITE_API_URL=http://localhost:5000
-```
-
-**3. Seed database (one-time):**
-
-```bash
-cd server
-npm run seed
-```
-
-**4. Start the application:**
+**2. Start the application:**
 
 **Terminal 1 (Server):**
 
