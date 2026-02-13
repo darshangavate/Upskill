@@ -39,17 +39,10 @@ export default function SidebarLayout() {
     // enroll() also sets selected as active + pauses others (based on your backend change)
     await api.enroll(userId, courseId);
 
-    // reload fresh dashboard + enrollments (NO full window reload)
-    const d = await api.getDashboard(userId);
-    setDashboard(d);
-
-    const all = await api.getEnrollments(userId);
-    setEnrollments(all || []);
-
     setOpen(false);
 
-    // optional: if you want to always land back on dashboard after switching
-    nav("/");
+    // Reload page so all pages (Dashboard, Path, etc.) refetch with new course
+    window.location.reload();
   }
 
   return (
