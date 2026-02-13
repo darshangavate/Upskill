@@ -64,31 +64,7 @@ npm install
 cd ../client
 npm install
 ```
-
-**2. Configure environment variables:**
-
-**server/.env:**
-
-```
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/upskill
-```
-
-**client/.env:**
-
-```
-VITE_API_URL=http://localhost:5000
-```
-
-**3. Seed database (one-time):**
-
-```bash
-cd server
-npm run seed
-```
-
-**4. Start the application:**
+**2. Start the application:**
 
 **Terminal 1 (Server):**
 
@@ -193,14 +169,6 @@ The engine automatically adjusts learning paths based on attempt results:
 - Time spent vs. expected time comparison
 - Deferred "needs_review" status for borderline scores
 
-## 🌐 Frontend Pages
-
-- **Dashboard** (`/`) - Active course overview, recent activity
-- **My Path** (`/path`) - NOW/NEXT/Upcoming/Review/Completed lanes
-- **Courses** (`/courses`) - Browse available courses
-- **Asset** (`/asset/:assetId`) - View content + timer + complete asset
-- **Quiz** (`/quiz`) - Take assessments + submit attempts
-
 ## 🔐 Environment Variables
 
 **server/.env:**
@@ -228,13 +196,6 @@ VITE_API_URL=http://localhost:5000
 ## 🚀 Deployment
 
 _Coming soon: Docker, vercel/heroku steps_
-
-## 📝 Known Limitations
-
-- User switching via localStorage (for MVP testing only; use auth in production)
-- Quiz questions currently hardcoded by topic (move to dynamic generation later)
-- No multi-course concurrent tracking (one active course per user)
-- Frontend timer is local only (not server-validated)
 
 ## 📧 Contact
 
