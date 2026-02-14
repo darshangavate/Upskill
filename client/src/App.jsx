@@ -6,6 +6,8 @@ import Courses from "./pages/Courses";
 import Quiz from "./pages/Quiz";
 import Path from "./pages/Path";
 import Asset from "./pages/Asset";
+import Profile from "./pages/Profile";
+
 
 export default function App() {
   return (
@@ -20,6 +22,7 @@ export default function App() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/asset/:assetId" element={<Asset />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/profile" element={<Profile />} /> {/* ✅ add */}
 
         </Route>
 
