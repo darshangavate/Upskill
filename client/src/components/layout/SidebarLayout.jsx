@@ -18,13 +18,15 @@ export default function SidebarLayout() {
 
   useEffect(() => {
     (async () => {
-      // 1) dashboard (active course)
-      const d = await api.getDashboard(userId);
-      setDashboard(d);
+      try {
+        const d = await api.getDashboard(userId);
+        setDashboard(d);
 
-      // 2) all enrollments (dropdown list)
-      const all = await api.getEnrollments(userId);
-      setEnrollments(all || []);
+        const all = await api.getEnrollments(userId);
+        setEnrollments(all || []);
+      } catch (e) {
+        console.error("Sidebar load failed:", e);
+      }
     })();
   }, [userId]);
 
@@ -36,12 +38,8 @@ export default function SidebarLayout() {
   );
 
   async function switchCourse(courseId) {
-    // enroll() also sets selected as active + pauses others (based on your backend change)
     await api.enroll(userId, courseId);
-
     setOpen(false);
-
-    // Reload page so all pages (Dashboard, Path, etc.) refetch with new course
     window.location.reload();
   }
 
@@ -55,53 +53,87 @@ export default function SidebarLayout() {
 
         <div className="ss-subtitle">Dynamic Upskilling Engine</div>
 
+        {/* ✅ NAV */}
         <nav className="ss-nav">
-          <button className={`ss-navitem ${isActive("/") ? "active" : ""}`} onClick={() => nav("/")}>
+          <button
+            className={`ss-navitem ${isActive("/") ? "active" : ""}`}
+            onClick={() => nav("/")}
+          >
             <span className="ss-ico">●</span> Dashboard
           </button>
 
-          <button className={`ss-navitem ${isActive("/courses") ? "active" : ""}`} onClick={() => nav("/courses")}>
+          <button
+            className={`ss-navitem ${isActive("/courses") ? "active" : ""}`}
+            onClick={() => nav("/courses")}
+          >
             <span className="ss-ico">▦</span> Courses
           </button>
 
-          <button className={`ss-navitem ${isActive("/path") ? "active" : ""}`} onClick={() => nav("/path")}>
+          <button
+            className={`ss-navitem ${isActive("/path") ? "active" : ""}`}
+            onClick={() => nav("/path")}
+          >
             <span className="ss-ico">⧉</span> My Path
           </button>
 
-          <button className={`ss-navitem ${isActive("/quiz") ? "active" : ""}`} onClick={() => nav("/quiz")}>
+          <button
+            className={`ss-navitem ${isActive("/quiz") ? "active" : ""}`}
+            onClick={() => nav("/quiz")}
+          >
             <span className="ss-ico">☑</span> Quiz
+          </button>
+
+          {/* ✅ NEW: Profile */}
+          <button
+            className={`ss-navitem ${isActive("/profile") ? "active" : ""}`}
+            onClick={() => nav("/profile")}
+          >
+            <span className="ss-ico">👤</span> Profile
           </button>
         </nav>
 
         <div className="ss-sidebottom">
-          <div className="ss-user">
+          {/* ✅ Click user block to go Profile */}
+          <div className="ss-user" onClick={() => nav("/profile")} style={{ cursor: "pointer" }}>
             <div className="ss-useravatar">
               {(dashboard?.user?.name || "U").slice(0, 1).toUpperCase()}
             </div>
             <div className="ss-usertext">
               <div className="ss-username">{dashboard?.user?.name || "User"}</div>
-              <div className="ss-userrole">{displayName(dashboard?.user?.role || "employee", { maxLen: 14 })}</div>
+              <div className="ss-userrole">
+                {displayName(dashboard?.user?.role || "employee", { maxLen: 14 })}
+              </div>
             </div>
             <div className="ss-usercaret">▾</div>
           </div>
 
-          <div className="ss-sideactions">
-            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-01")}>u-emp-01</button>
-            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-02")}>u-emp-02</button>
-            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-03")}>u-emp-03</button>
+          {/* demo user switch */}
+          <div className="ss-sideactions" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-01")}>
+              u-emp-01
+            </button>
+            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-02")}>
+              u-emp-02
+            </button>
+            <button type="button" className="ss-linkbtn" onClick={() => setActiveUserId("u-emp-03")}>
+              u-emp-03
+            </button>
           </div>
         </div>
       </aside>
 
       <main className="ss-main">
         <div className="ss-topbar">
-          {/* Dropdown trigger */}
-          <div className="ss-course" onClick={() => setOpen((v) => !v)} role="button" tabIndex={0}>
+          <div
+            className="ss-course"
+            onClick={() => setOpen((v) => !v)}
+            role="button"
+            tabIndex={0}
+          >
             <div className="ss-course-name">{currentCourseTitle}</div>
             <div className="ss-course-caret">▾</div>
           </div>
 
-          {/* Dropdown */}
           {open && (
             <div className="ss-dropdown">
               {enrollments.length === 0 ? (
